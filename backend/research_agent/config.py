@@ -32,7 +32,10 @@ class ModelRoles:
     # Re-measure before each review; free tiers move.
     planner: str = "gemini-2.5-flash"         # 1 call/run
     summarizer: str = "gemini-2.5-flash"      # P calls/run, long inputs (whole papers)
-    critic: str = "llama-3.3-70b-versatile"   # ~60 calls/run -- routed to Groq entirely
+    # Groq retired the Llama models; checked against the live model list 2026-09-13.
+    # gpt-oss-120b and gpt-oss-20b both caught a dropped "not" (CONTRADICTED) in a
+    # live test. 20b is the fallback if 120b's free-tier quota runs short.
+    critic: str = "openai/gpt-oss-120b"       # ~1 call per claim -- routed to Groq entirely
     synthesizer: str = "gemini-3.5-flash"     # 1 call/run, separate bucket from the above
 
     # Routing is by model-name prefix: gemini-* goes to Gemini, everything else to Groq
