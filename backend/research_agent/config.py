@@ -1,6 +1,7 @@
 """Configuration. Model choices live here so switching provider is one edit.
 
-TODO(Track A): load from environment, validate required keys at startup.
+Values come from the environment via .env (see .env.example). Model ids and limits
+below were measured against the live free tier, not assumed -- see ModelRoles.
 """
 from __future__ import annotations
 
