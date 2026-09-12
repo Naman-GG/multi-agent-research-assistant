@@ -21,16 +21,25 @@ from pydantic import BaseModel
 from ..models import AgentName, LLMCall
 from .base import LLMResponse
 from .cache import DiskCache, cache_key
-from .ratelimit import RateLimiter, RateLimitError, with_backoff
+from .ratelimit import (
+    RateLimiter, RateLimitError, ServiceUnavailableError, with_backoff,
+)
+from .schema import to_gemini_schema
 
 T = TypeVar("T", bound=BaseModel)
 
-_RATE_LIMIT_MARKERS = ("429", "RESOURCE_EXHAUSTED", "quota", "rate limit")
+_RATE_LIMIT_MARKERS = ("429", "resource_exhausted", "quota", "rate limit")
+_UNAVAILABLE_MARKERS = ("503", "unavailable", "high demand", "overloaded", "internal error", "500")
 
 
-def _is_rate_limit(exc: Exception) -> bool:
+def _transient(exc: Exception) -> Exception | None:
+    """Map a provider exception to a retryable one, or None if it is fatal."""
     text = f"{type(exc).__name__} {exc}".lower()
-    return any(m.lower() in text for m in _RATE_LIMIT_MARKERS)
+    if any(m in text for m in _RATE_LIMIT_MARKERS):
+        return RateLimitError(str(exc))
+    if any(m in text for m in _UNAVAILABLE_MARKERS):
+        return ServiceUnavailableError(str(exc))
+    return None
 
 
 class GeminiClient:
@@ -91,7 +100,9 @@ class GeminiClient:
         config: dict = {"temperature": temperature}
         if schema is not None:
             config["response_mime_type"] = "application/json"
-            config["response_schema"] = schema
+            # Gemini takes a trimmed OpenAPI schema, not full JSON Schema -- passing
+            # the pydantic class directly 400s on additionalProperties/$defs/anyOf.
+            config["response_schema"] = to_gemini_schema(schema)
 
         async def once():
             if self._limiter:
@@ -101,8 +112,8 @@ class GeminiClient:
                     model=model, contents=prompt, config=config
                 )
             except Exception as exc:  # provider SDKs raise their own error types
-                if _is_rate_limit(exc):
-                    raise RateLimitError(str(exc)) from exc
+                if (retryable := _transient(exc)) is not None:
+                    raise retryable from exc
                 raise
             return resp
 

@@ -117,8 +117,11 @@ class FakeLLM:
         raise AssertionError(f"FakeLLM has no canned response for schema {name}")
 
 
-def _c(text: str, quote: str) -> Claim:
-    return Claim(id="", paper_id="", text=text, quote=quote)
+def _c(text: str, quote: str):
+    """The Summarizer's output schema is ClaimDraft -- no id, no paper_id."""
+    from research_agent.agents.summarizer import ClaimDraft
+
+    return ClaimDraft(text=text, quote=quote)
 
 
 def _ids_in(prompt: str) -> list[str]:

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..llm.base import LLMClient
 from ..models import Claim, PaperRef, PaperSummary, TextAvailability
@@ -25,10 +25,23 @@ _ABSTRACT_NOTE = (
 )
 
 
+class ClaimDraft(BaseModel):
+    """What the model is asked to produce -- deliberately NOT the storage model.
+
+    No id and no paper_id: attribution is ours to assign, and a model that cannot
+    name a paper cannot cite a claim to the wrong one. Keeping the schema this small
+    also cuts tokens on the highest-volume call in the pipeline.
+    """
+
+    text: str = Field(description="One atomic factual claim, in your own words.")
+    quote: str = Field(description="Verbatim span from the paper supporting the claim.")
+    section: str = Field(default="", description="Abstract | Methods | Results | Discussion")
+
+
 class ClaimList(BaseModel):
     """Structured output schema for the Summarizer."""
 
-    claims: list[Claim]
+    claims: list[ClaimDraft]
 
 
 async def summarize_paper(
@@ -53,13 +66,16 @@ async def summarize_paper(
 
     summary_id = f"S-{uuid.uuid4().hex[:8]}"
     claims: list[Claim] = []
-    for claim in result.claims[:max_claims]:
-        # The model does not choose ids or attribution -- we do. Letting it emit
-        # paper_id is how claims end up cited to the wrong paper.
-        claim.id = f"C-{uuid.uuid4().hex[:8]}"
-        claim.paper_id = paper.id
-        claim.quote_start = None
-        claim.quote_end = None
-        claims.append(claim)
+    for draft in result.claims[:max_claims]:
+        if not draft.text.strip() or not draft.quote.strip():
+            continue  # an empty claim or quote is noise, not a finding
+        # Ids and attribution are ours to assign, never the model's.
+        claims.append(Claim(
+            id=f"C-{uuid.uuid4().hex[:8]}",
+            paper_id=paper.id,
+            text=draft.text,
+            quote=draft.quote,
+            section=draft.section or None,
+        ))
 
     return PaperSummary(id=summary_id, paper_id=paper.id, model=model, claims=claims)

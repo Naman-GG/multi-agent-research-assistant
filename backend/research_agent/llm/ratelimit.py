@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import re
 import time
 from collections.abc import Awaitable, Callable
 from typing import TypeVar
@@ -44,26 +45,55 @@ class RateLimiter:
             await asyncio.sleep(wait)
 
 
-class RateLimitError(Exception):
-    """Raised by a provider adapter when the API reports 429 / quota exhaustion."""
+_RETRY_AFTER = re.compile(r"retry in ([0-9.]+)s", re.I)
+
+
+def retry_after(exc: Exception) -> float | None:
+    """Seconds the provider asked us to wait, when it says so.
+
+    Gemini's 429 carries 'Please retry in 29.6s'. Honouring that beats guessing:
+    exponential backoff from 1s gives up long before a 30s window has passed.
+    """
+    match = _RETRY_AFTER.search(str(exc))
+    return float(match.group(1)) if match else None
+
+
+class TransientError(Exception):
+    """A provider failure that is worth retrying: rate limits AND temporary outages.
+
+    Free-tier endpoints return 503 UNAVAILABLE under load fairly often. Treating that
+    as fatal would abort a run several minutes in -- and would do it during a demo.
+    """
+
+
+class RateLimitError(TransientError):
+    """The API reported 429 / quota exhaustion."""
+
+
+class ServiceUnavailableError(TransientError):
+    """The API reported 503 / overloaded. Retry with the same backoff."""
 
 
 async def with_backoff(
     fn: Callable[[], Awaitable[T]],
     *,
-    max_attempts: int = 5,
-    base_delay: float = 1.0,
-    max_delay: float = 60.0,
+    max_attempts: int = 6,
+    base_delay: float = 2.0,
+    max_delay: float = 90.0,
 ) -> T:
-    """Retry `fn` on RateLimitError with exponential backoff + full jitter."""
+    """Retry `fn` on TransientError with exponential backoff + full jitter."""
     last: Exception | None = None
     for attempt in range(max_attempts):
         try:
             return await fn()
-        except RateLimitError as exc:
+        except TransientError as exc:
             last = exc
             if attempt == max_attempts - 1:
                 break
-            delay = min(max_delay, base_delay * (2**attempt))
-            await asyncio.sleep(random.uniform(0, delay))
+            if (suggested := retry_after(exc)) is not None:
+                # the provider told us exactly how long; add a little slack
+                await asyncio.sleep(min(max_delay, suggested + random.uniform(0.5, 2.0)))
+            else:
+                delay = min(max_delay, base_delay * (2**attempt))
+                await asyncio.sleep(random.uniform(delay / 2, delay))
     raise last if last else RuntimeError("with_backoff: no attempt made")
