@@ -1,8 +1,5 @@
 """SPEC for Stage 1 -- written before the implementation, on purpose.
 
-These are marked xfail so a fresh checkout has a green suite. Track C removes the
-xfail markers one at a time as `verification/span_check.py` comes to life.
-
 The cases encode the real judgement call: PDF extraction noise must pass, and
 fabrication must fail. Everything in between is threshold tuning -- which is a
 result worth reporting, not a detail to hide.
@@ -11,8 +8,6 @@ import pytest
 
 from research_agent.models import Claim, PaperRef, TextAvailability, VerdictLabel
 from research_agent.verification import span_check
-
-pytestmark = pytest.mark.xfail(reason="TODO(Track C): implement span_check", strict=False)
 
 SOURCE = (
     "Results. In the dexamethasone group, 28-day mortality among patients receiving "
