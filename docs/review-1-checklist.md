@@ -27,28 +27,28 @@ beats a broad one that breaks.
 Biggest load, because everything integrates through this track.
 
 ### LLM layer
-- [ ] `llm/cache.py` — `get()` / `put()` over JSON files in `settings.cache_dir`
-- [ ] `llm/ratelimit.py` — `RateLimiter.acquire()` token bucket; `with_backoff()` on 429
-- [ ] `llm/gemini.py` — `complete()` and `complete_json()`, routed through cache + limiter
+- [x] `llm/cache.py` — `get()` / `put()` over JSON files in `settings.cache_dir`
+- [x] `llm/ratelimit.py` — `RateLimiter.acquire()` token bucket; `with_backoff()` on 429
+- [x] `llm/gemini.py` — `complete()` and `complete_json()`, routed through cache + limiter
 
 *Done when:* `complete_json()` returns a validated pydantic object, a repeat call is a
 cache hit, and every call is logged as an `LLMCall`.
 
 ### Agents
-- [ ] `agents/planner.py` — `plan_query()`, 3–6 sub-queries, ≥1 with `contradiction` intent
-- [ ] `agents/summarizer.py` — `summarize_paper()`, ONE paper per call
-- [ ] `agents/retriever.py` — `retrieve()`: fan sub-queries across sources, merge, rank, truncate
-- [ ] `agents/synthesizer.py` — `synthesize()`, citations assigned mechanically from `paper_id`
+- [x] `agents/planner.py` — `plan_query()`, 3–6 sub-queries, ≥1 with `contradiction` intent
+- [x] `agents/summarizer.py` — `summarize_paper()`, ONE paper per call
+- [x] `agents/retriever.py` — `retrieve()`: fan sub-queries across sources, merge, rank, truncate
+- [x] `agents/synthesizer.py` — `synthesize()`, citations assigned mechanically from `paper_id`
 
 *Done when:* the Summarizer's output validates as `ClaimList` and every quote it emits is
 findable in the source. If quotes aren't verbatim, fix the prompt — don't loosen the checker.
 
 ### Runtime
-- [ ] `events.py` — `EventBus.emit()` / `subscribe()`, monotonic `seq`
-- [ ] `db.py` — SQLModel tables, `init_db`, `save_run`, `load_run`
-- [ ] `orchestrator.py` — `run_pipeline()` and `replay()`
-- [ ] `api/main.py` — `POST /runs`, `GET /runs/{id}`, `GET /runs/{id}/events` (SSE), `GET /runs/{id}/report`
-- [ ] `cli.py` — `run` and `replay`
+- [x] `events.py` — `EventBus.emit()` / `subscribe()`, monotonic `seq`
+- [x] `db.py` — SQLModel tables, `init_db`, `save_run`, `load_run`
+- [x] `orchestrator.py` — `run_pipeline()` and `replay()`
+- [x] `api/main.py` — `POST /runs`, `GET /runs/{id}`, `GET /runs/{id}/events` (SSE), `GET /runs/{id}/report`
+- [x] `cli.py` — `run` and `replay`
 
 ### Prompts
 - [ ] Tune `prompts/planner.md`, `summarizer.md`, `synthesizer.md`

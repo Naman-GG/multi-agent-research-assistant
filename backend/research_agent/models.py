@@ -175,8 +175,16 @@ class SubQuery(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
-    text: str
-    keywords: list[str] = Field(default_factory=list)
+    text: str = Field(description="The sub-question, in natural language. For humans.")
+    keywords: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Search-ready terms -- what you would type into an academic database. "
+            "SearchSource implementations should query on THESE, not on `text`: "
+            "`text` is a question and several databases treat punctuation such as "
+            "'?' as query operators."
+        ),
+    )
     intent: SubQueryIntent = SubQueryIntent.FINDING
     rationale: str = ""
 
