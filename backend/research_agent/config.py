@@ -17,10 +17,18 @@ class ModelRoles:
     review and size `max_papers` to fit -- free tier terms change.
     """
 
-    planner: str = "gemini-2.5-pro"
-    summarizer: str = "gemini-2.5-flash"      # long inputs (whole papers), few calls
+    # MEASURED on the free tier (2026-09): Pro-tier models return 429 RESOURCE_EXHAUSTED
+    # immediately -- the free quota covers flash models only. Everything Gemini-side is
+    # therefore flash. This is a constraint to state in the report, not a shortcut.
+    #
+    # `-latest` follows the current release. That is right for development, where a
+    # pinned id can be retired underneath you mid-semester (gemini-2.5-pro was, during
+    # this project). Before the week-7 evaluation, PIN an exact version here and record
+    # it in the methodology -- results are not reproducible against a moving alias.
+    planner: str = "gemini-flash-latest"
+    summarizer: str = "gemini-flash-latest"   # long inputs (whole papers), few calls
     critic: str = "llama-3.3-70b-versatile"   # tiny inputs, ~60 calls/run -- routed to Groq
-    synthesizer: str = "gemini-2.5-pro"
+    synthesizer: str = "gemini-flash-latest"
 
     # Routing is by model-name prefix: gemini-* goes to Gemini, everything else to Groq
     # (see llm/router.py). Set critic to a gemini-* name to put it all on one provider.
@@ -31,9 +39,13 @@ class Limits:
     max_papers: int = 12
     max_sub_queries: int = 5
     max_claims_per_paper: int = 8
-    summarizer_concurrency: int = 4           # bounded fan-out; respect the rate limit
-    critic_concurrency: int = 4
-    requests_per_minute: int = 12             # Gemini bucket
+    # At 5 requests/minute there is no point launching 4 summaries at once -- they
+    # just queue on the limiter. Concurrency above the rate limit buys nothing.
+    summarizer_concurrency: int = 2
+    critic_concurrency: int = 4               # Critic runs on Groq, a separate bucket
+    # MEASURED 2026-09 on the free tier: gemini-flash-latest (-> gemini-3.8-flash)
+    # allows 5 requests/minute. Re-check before each review; free tiers move.
+    requests_per_minute: int = 5              # Gemini bucket
     groq_requests_per_minute: int = 25        # Groq bucket -- independent quota
     span_match_threshold: float = 92.0        # rapidfuzz score below this = QUOTE_NOT_FOUND
 

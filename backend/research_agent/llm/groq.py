@@ -24,11 +24,14 @@ from pydantic import BaseModel, ValidationError
 from ..models import AgentName, LLMCall
 from .base import LLMResponse
 from .cache import DiskCache, cache_key
-from .ratelimit import RateLimiter, RateLimitError, with_backoff
+from .ratelimit import (
+    RateLimiter, RateLimitError, ServiceUnavailableError, with_backoff,
+)
 
 T = TypeVar("T", bound=BaseModel)
 
 _RATE_LIMIT_MARKERS = ("429", "rate limit", "rate_limit", "quota", "too many requests")
+_UNAVAILABLE_MARKERS = ("503", "unavailable", "overloaded", "502", "500")
 
 _JSON_INSTRUCTION = """
 
@@ -37,9 +40,13 @@ Reply with JSON only -- no prose, no markdown fence -- matching this schema exac
 """
 
 
-def _is_rate_limit(exc: Exception) -> bool:
+def _transient(exc: Exception) -> Exception | None:
     text = f"{type(exc).__name__} {exc}".lower()
-    return any(m in text for m in _RATE_LIMIT_MARKERS)
+    if any(m in text for m in _RATE_LIMIT_MARKERS):
+        return RateLimitError(str(exc))
+    if any(m in text for m in _UNAVAILABLE_MARKERS):
+        return ServiceUnavailableError(str(exc))
+    return None
 
 
 def _strip_fence(text: str) -> str:
@@ -99,8 +106,8 @@ class GroqClient:
                     **({"response_format": {"type": "json_object"}} if json_mode else {}),
                 )
             except Exception as exc:
-                if _is_rate_limit(exc):
-                    raise RateLimitError(str(exc)) from exc
+                if (retryable := _transient(exc)) is not None:
+                    raise retryable from exc
                 raise
 
         resp = await with_backoff(once)

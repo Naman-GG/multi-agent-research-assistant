@@ -8,6 +8,11 @@ from ..config import settings
 from ..models import Author, PaperRef, SubQuery, TextAvailability
 
 
+def _strip_operators(text: str) -> str:
+    """Remove characters OpenAlex reads as query operators."""
+    return " ".join(text.replace("?", " ").replace("*", " ").split())
+
+
 def reconstruct_abstract(inverted_index: dict[str, list[int]] | None) -> str | None:
     """Turn OpenAlex's abstract_inverted_index back into readable text."""
     if not inverted_index:
@@ -46,9 +51,13 @@ class OpenAlexSource:
 
     async def search(self, query: SubQuery, *, limit: int = 20) -> list[PaperRef]:
         """Query https://api.openalex.org/works for papers matching query."""
-        search_terms = query.text.strip()
-        if not search_terms and query.keywords:
-            search_terms = " ".join(query.keywords)
+        # Query on keywords, not the sub-question. OpenAlex treats '?' and '*' as
+        # wildcard operators and returns 400 for a question-shaped search string --
+        # and the Planner emits questions, so passing `text` raw fails every time.
+        search_terms = " ".join(query.keywords).strip()
+        if not search_terms:
+            search_terms = query.text.strip()
+        search_terms = _strip_operators(search_terms)
 
         params: dict[str, Any] = {
             "search": search_terms,
