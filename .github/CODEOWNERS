@@ -1,0 +1,6 @@
+# Every file requires review from @Naman-GG before it can merge into main.
+#
+# Combined with branch protection (1 approving review + require_code_owner_reviews),
+# this means only Naman's approval satisfies the requirement -- a review from any
+# other collaborator does not unblock a merge.
+*       @Naman-GG
