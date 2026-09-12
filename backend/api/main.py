@@ -22,9 +22,7 @@ from sse_starlette.sse import EventSourceResponse
 from research_agent import db
 from research_agent.config import settings
 from research_agent.events import EventBus
-from research_agent.llm.cache import DiskCache
-from research_agent.llm.gemini import GeminiClient
-from research_agent.llm.ratelimit import RateLimiter
+from research_agent.llm.factory import build_llm
 from research_agent.models import Run, RunConfig, RunStatus
 from research_agent.orchestrator import replay as replay_run
 from research_agent.orchestrator import run_pipeline
@@ -68,13 +66,7 @@ def _sources():
 
 
 def _llm(run_id: str):
-    return GeminiClient(
-        settings.gemini_api_key,
-        cache=DiskCache(settings.cache_dir),
-        limiter=RateLimiter(settings.limits.requests_per_minute),
-        on_call=db.save_llm_call,
-        run_id=run_id,
-    )
+    return build_llm(run_id=run_id, on_call=db.save_llm_call)
 
 
 @app.get("/health")

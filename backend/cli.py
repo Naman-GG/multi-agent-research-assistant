@@ -19,9 +19,7 @@ from dotenv import load_dotenv
 from .research_agent import db
 from .research_agent.config import settings
 from .research_agent.events import EventBus
-from .research_agent.llm.cache import DiskCache
-from .research_agent.llm.gemini import GeminiClient
-from .research_agent.llm.ratelimit import RateLimiter
+from .research_agent.llm.factory import build_llm, describe
 from .research_agent.models import AgentName, RunConfig, VerdictLabel, VerificationStage
 from .research_agent.orchestrator import replay as replay_run
 from .research_agent.orchestrator import run_pipeline
@@ -46,12 +44,8 @@ async def cmd_run(args) -> int:
     bus = EventBus("pending")
     printer = asyncio.create_task(_print_trace(bus))
 
-    llm = GeminiClient(
-        settings.gemini_api_key,
-        cache=DiskCache(settings.cache_dir),
-        limiter=RateLimiter(settings.limits.requests_per_minute),
-        on_call=db.save_llm_call,
-    )
+    llm = build_llm(on_call=db.save_llm_call)
+    print(f"  providers: {describe(llm)}\n")
     try:
         run = await run_pipeline(args.question, llm, [OpenAlexSource()],
                                  config=config, bus=bus)

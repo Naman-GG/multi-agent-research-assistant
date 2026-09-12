@@ -18,9 +18,12 @@ class ModelRoles:
     """
 
     planner: str = "gemini-2.5-pro"
-    summarizer: str = "gemini-2.5-flash"      # highest call volume -- keep this cheap
-    critic: str = "gemini-2.5-pro"            # claim verification: accuracy matters most
+    summarizer: str = "gemini-2.5-flash"      # long inputs (whole papers), few calls
+    critic: str = "llama-3.3-70b-versatile"   # tiny inputs, ~60 calls/run -- routed to Groq
     synthesizer: str = "gemini-2.5-pro"
+
+    # Routing is by model-name prefix: gemini-* goes to Gemini, everything else to Groq
+    # (see llm/router.py). Set critic to a gemini-* name to put it all on one provider.
 
 
 @dataclass(frozen=True)
@@ -30,7 +33,8 @@ class Limits:
     max_claims_per_paper: int = 8
     summarizer_concurrency: int = 4           # bounded fan-out; respect the rate limit
     critic_concurrency: int = 4
-    requests_per_minute: int = 12
+    requests_per_minute: int = 12             # Gemini bucket
+    groq_requests_per_minute: int = 25        # Groq bucket -- independent quota
     span_match_threshold: float = 92.0        # rapidfuzz score below this = QUOTE_NOT_FOUND
 
 
