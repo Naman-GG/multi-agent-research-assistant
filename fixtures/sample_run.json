@@ -1,0 +1,504 @@
+{
+  "id": "RUN-SAMPLE-001",
+  "question": "Do corticosteroids reduce mortality in patients hospitalized with COVID-19?",
+  "status": "completed",
+  "config": {
+    "max_papers": 12,
+    "max_sub_queries": 5,
+    "sources": [
+      "openalex",
+      "semantic_scholar"
+    ],
+    "year_from": null,
+    "year_to": null,
+    "allow_abstract_only": true
+  },
+  "plan": {
+    "question": "Do corticosteroids reduce mortality in patients hospitalized with COVID-19?",
+    "sub_queries": [
+      {
+        "id": "SQ1",
+        "text": "What is the effect of dexamethasone on 28-day mortality in hospitalized COVID-19 patients?",
+        "keywords": [
+          "dexamethasone",
+          "COVID-19",
+          "28-day mortality"
+        ],
+        "intent": "finding",
+        "rationale": "The primary outcome the question asks about."
+      },
+      {
+        "id": "SQ2",
+        "text": "Does the mortality benefit of corticosteroids depend on respiratory support level?",
+        "keywords": [
+          "corticosteroids",
+          "mechanical ventilation",
+          "subgroup"
+        ],
+        "intent": "finding",
+        "rationale": "Effect is widely reported to be heterogeneous by illness severity."
+      },
+      {
+        "id": "SQ3",
+        "text": "Is there evidence of corticosteroid harm in viral pneumonia?",
+        "keywords": [
+          "corticosteroids",
+          "influenza",
+          "harm",
+          "viral shedding"
+        ],
+        "intent": "contradiction",
+        "rationale": "Surfaces contradicting evidence so the report is not one-sided."
+      }
+    ]
+  },
+  "papers": [
+    {
+      "id": "P1",
+      "title": "Dexamethasone in Hospitalized Patients with Covid-19",
+      "source_api": "openalex",
+      "availability": "full_text",
+      "doi": "10.1056/NEJMoa2021436",
+      "authors": [
+        {
+          "name": "RECOVERY Collaborative Group",
+          "orcid": null
+        }
+      ],
+      "year": 2021,
+      "venue": "New England Journal of Medicine",
+      "abstract": "In this controlled, open-label trial, hospitalized patients with Covid-19 were randomly assigned to receive oral or intravenous dexamethasone at a dose of 6 mg once daily for up to 10 days or to receive usual care alone.",
+      "full_text": "Abstract. In this controlled, open-label trial, hospitalized patients with Covid-19 were randomly assigned to receive oral or intravenous dexamethasone at a dose of 6 mg once daily for up to 10 days or to receive usual care alone.\n\nResults. A total of 2104 patients were randomly assigned to receive dexamethasone and 4321 to receive usual care. Overall, 482 patients (22.9%) in the dexamethasone group and 1110 patients (25.7%) in the usual care group died within 28 days after randomization. In the dexamethasone group, the incidence of death was lower than that in the usual care group among patients receiving invasive mechanical ventilation (29.3% vs. 41.4%) and among those receiving oxygen without invasive mechanical ventilation (23.3% vs. 26.2%), but not among those who were receiving no respiratory support at randomization (17.8% vs. 14.0%).\n\nDiscussion. The benefit of dexamethasone was clearest among patients who were receiving respiratory support. Among patients who did not require oxygen, no benefit was observed, and the point estimate favored usual care. These findings suggest that the effect of glucocorticoids depends on the stage of illness.",
+      "url": "https://doi.org/10.1056/NEJMoa2021436",
+      "oa_pdf_url": "https://www.nejm.org/doi/pdf/10.1056/NEJMoa2021436",
+      "citation_count": 14203
+    },
+    {
+      "id": "P2",
+      "title": "Association Between Administration of Systemic Corticosteroids and Mortality Among Critically Ill Patients With COVID-19",
+      "source_api": "openalex",
+      "availability": "full_text",
+      "doi": "10.1001/jama.2020.17023",
+      "authors": [
+        {
+          "name": "WHO REACT Working Group",
+          "orcid": null
+        }
+      ],
+      "year": 2020,
+      "venue": "JAMA",
+      "abstract": "We conducted a prospective meta-analysis of clinical trials of systemic corticosteroids in critically ill patients with Covid-19.",
+      "full_text": "Abstract. We conducted a prospective meta-analysis of clinical trials of systemic corticosteroids in critically ill patients with Covid-19.\n\nResults. Seven randomized trials including 1703 patients were included. The fixed-effect summary odds ratio for the association between corticosteroids and mortality was 0.66 (95% CI, 0.53-0.82; P < .001) based on 222 deaths among 678 patients randomized to corticosteroids and 425 deaths among 1025 patients randomized to usual care or placebo. There was no suggestion of increased risk of serious adverse events.\n\nDiscussion. Administration of systemic corticosteroids was associated with lower 28-day all-cause mortality in critically ill patients with Covid-19. The association was similar for dexamethasone and hydrocortisone.",
+      "url": "https://doi.org/10.1001/jama.2020.17023",
+      "oa_pdf_url": null,
+      "citation_count": 3891
+    },
+    {
+      "id": "P3",
+      "title": "Corticosteroids and Outcomes in Severe Influenza Pneumonia",
+      "source_api": "semantic_scholar",
+      "availability": "abstract_only",
+      "doi": "10.1164/rccm.201905-1001OC",
+      "authors": [
+        {
+          "name": "L. Ferrand",
+          "orcid": null
+        },
+        {
+          "name": "M. Okonjo",
+          "orcid": null
+        }
+      ],
+      "year": 2019,
+      "venue": "Am J Respir Crit Care Med",
+      "abstract": "Glucocorticoid therapy in viral pneumonia remains contested. In a retrospective cohort of 402 patients with severe influenza pneumonia, early corticosteroid administration was associated with increased 30-day mortality (adjusted hazard ratio 1.98; 95% CI, 1.23-3.17) and with prolonged viral shedding. These findings caution against extrapolating corticosteroid benefit across viral respiratory illnesses.",
+      "full_text": null,
+      "url": null,
+      "oa_pdf_url": null,
+      "citation_count": 204
+    }
+  ],
+  "summaries": [
+    {
+      "id": "S1",
+      "paper_id": "P1",
+      "model": "gemini-flash",
+      "claims": [
+        {
+          "id": "C1",
+          "paper_id": "P1",
+          "text": "Dexamethasone lowered 28-day mortality among COVID-19 patients receiving invasive mechanical ventilation, 29.3% versus 41.4%.",
+          "quote": "In the dexamethasone group, the incidence of death was lower than that in the usual care group among patients receiving invasive mechanical ventilation (29.3% vs. 41.4%)",
+          "section": "Results",
+          "quote_start": 494,
+          "quote_end": 663
+        },
+        {
+          "id": "C2",
+          "paper_id": "P1",
+          "text": "No mortality benefit from dexamethasone was observed in patients not requiring oxygen.",
+          "quote": "Among patients who did not require oxygen, no benefit was observed, and the point estimate favored usual care.",
+          "section": "Discussion",
+          "quote_start": 964,
+          "quote_end": 1074
+        },
+        {
+          "id": "C3",
+          "paper_id": "P1",
+          "text": "Dexamethasone reduced mortality by 47% across all hospitalized patients.",
+          "quote": "Dexamethasone reduced mortality by 47% across all hospitalized patients regardless of oxygen requirement.",
+          "section": "Results",
+          "quote_start": null,
+          "quote_end": null
+        }
+      ],
+      "created_at": "2026-03-02T10:12:00Z"
+    },
+    {
+      "id": "S2",
+      "paper_id": "P2",
+      "model": "gemini-flash",
+      "claims": [
+        {
+          "id": "C4",
+          "paper_id": "P2",
+          "text": "A meta-analysis of seven trials found corticosteroids associated with lower mortality, odds ratio 0.66.",
+          "quote": "The fixed-effect summary odds ratio for the association between corticosteroids and mortality was 0.66 (95% CI, 0.53-0.82; P < .001)",
+          "section": "Results",
+          "quote_start": 213,
+          "quote_end": 345
+        },
+        {
+          "id": "C5",
+          "paper_id": "P2",
+          "text": "Dexamethasone and hydrocortisone showed comparable mortality associations.",
+          "quote": "The association was similar for dexamethasone and hydrocortisone.",
+          "section": "Discussion",
+          "quote_start": 707,
+          "quote_end": 772
+        }
+      ],
+      "created_at": "2026-03-02T10:13:00Z"
+    },
+    {
+      "id": "S3",
+      "paper_id": "P3",
+      "model": "gemini-flash",
+      "claims": [
+        {
+          "id": "C6",
+          "paper_id": "P3",
+          "text": "In severe influenza pneumonia, early corticosteroids were associated with higher 30-day mortality.",
+          "quote": "early corticosteroid administration was associated with increased 30-day mortality (adjusted hazard ratio 1.98; 95% CI, 1.23-3.17)",
+          "section": "Abstract",
+          "quote_start": 136,
+          "quote_end": 266
+        }
+      ],
+      "created_at": "2026-03-02T10:14:00Z"
+    }
+  ],
+  "verdicts": [
+    {
+      "claim_id": "C1",
+      "stage": "span",
+      "label": "quote_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 100.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C1",
+      "stage": "entailment",
+      "label": "supported",
+      "confidence": 0.96,
+      "reasoning": "The quote states both percentages and the ventilated subgroup exactly as claimed.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:16:00Z"
+    },
+    {
+      "claim_id": "C2",
+      "stage": "span",
+      "label": "quote_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 100.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C2",
+      "stage": "entailment",
+      "label": "supported",
+      "confidence": 0.91,
+      "reasoning": "The quote directly states no benefit was observed in patients not requiring oxygen.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:16:00Z"
+    },
+    {
+      "claim_id": "C3",
+      "stage": "span",
+      "label": "quote_not_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 38.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C4",
+      "stage": "span",
+      "label": "quote_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 100.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C4",
+      "stage": "entailment",
+      "label": "supported",
+      "confidence": 0.94,
+      "reasoning": "Odds ratio and trial count match the quote.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:16:00Z"
+    },
+    {
+      "claim_id": "C5",
+      "stage": "span",
+      "label": "quote_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 100.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C5",
+      "stage": "entailment",
+      "label": "partial",
+      "confidence": 0.55,
+      "reasoning": "The quote says the association was similar but does not quantify it; 'comparable' overstates.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:16:00Z"
+    },
+    {
+      "claim_id": "C5",
+      "stage": "entailment",
+      "label": "supported",
+      "confidence": 0.88,
+      "reasoning": "After repair the claim mirrors the quote's wording without added precision.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": true,
+      "created_at": "2026-03-02T10:17:00Z"
+    },
+    {
+      "claim_id": "C6",
+      "stage": "span",
+      "label": "quote_found",
+      "confidence": null,
+      "reasoning": null,
+      "model": null,
+      "match_score": 100.0,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:15:00Z"
+    },
+    {
+      "claim_id": "C6",
+      "stage": "entailment",
+      "label": "supported",
+      "confidence": 0.89,
+      "reasoning": "Hazard ratio and direction of effect match the quote.",
+      "model": "gemini-pro",
+      "match_score": null,
+      "is_repair_attempt": false,
+      "created_at": "2026-03-02T10:16:00Z"
+    }
+  ],
+  "report": {
+    "markdown": "## Corticosteroids and mortality in COVID-19\n\n### Benefit in patients receiving respiratory support\n\nDexamethasone lowered 28-day mortality among COVID-19 patients receiving invasive mechanical ventilation, 29.3% versus 41.4% [1]. A meta-analysis of seven trials found corticosteroids associated with lower mortality, odds ratio 0.66 [2].\n\n### The benefit is not uniform\n\nNo mortality benefit from dexamethasone was observed in patients not requiring oxygen [1]. Dexamethasone and hydrocortisone showed similar mortality associations [2].\n\n### Contradicting evidence\n\nIn severe influenza pneumonia, early corticosteroids were associated with higher 30-day mortality [3], which cautions against generalizing across viral pneumonias.\n",
+    "citations": [
+      {
+        "marker": 1,
+        "paper_id": "P1",
+        "claim_ids": [
+          "C1",
+          "C2"
+        ]
+      },
+      {
+        "marker": 2,
+        "paper_id": "P2",
+        "claim_ids": [
+          "C4",
+          "C5"
+        ]
+      },
+      {
+        "marker": 3,
+        "paper_id": "P3",
+        "claim_ids": [
+          "C6"
+        ]
+      }
+    ],
+    "themes": [
+      {
+        "title": "Benefit in patients receiving respiratory support",
+        "claim_ids": [
+          "C1",
+          "C4"
+        ]
+      },
+      {
+        "title": "The benefit is not uniform",
+        "claim_ids": [
+          "C2",
+          "C5"
+        ]
+      },
+      {
+        "title": "Contradicting evidence",
+        "claim_ids": [
+          "C6"
+        ]
+      }
+    ],
+    "bibtex": "@article{recovery2021dexamethasone,\n  title   = {Dexamethasone in Hospitalized Patients with Covid-19},\n  author  = {{RECOVERY Collaborative Group}},\n  journal = {New England Journal of Medicine},\n  year    = {2021},\n  doi     = {10.1056/NEJMoa2021436}\n}\n"
+  },
+  "events": [
+    {
+      "seq": 1,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "orchestrator",
+      "type": "run_started",
+      "message": "Run started",
+      "payload": {},
+      "ts": "2026-03-02T10:10:00Z"
+    },
+    {
+      "seq": 2,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "planner",
+      "type": "sub_queries_planned",
+      "message": "Planned 3 sub-queries",
+      "payload": {
+        "count": 3
+      },
+      "ts": "2026-03-02T10:11:00Z"
+    },
+    {
+      "seq": 3,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "retriever",
+      "type": "papers_retrieved",
+      "message": "Retrieved 3 papers after dedupe",
+      "payload": {
+        "count": 3,
+        "abstract_only": 1
+      },
+      "ts": "2026-03-02T10:11:00Z"
+    },
+    {
+      "seq": 4,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "summarizer",
+      "type": "paper_summarized",
+      "message": "Summarized P1",
+      "payload": {
+        "paper_id": "P1",
+        "claims": 3
+      },
+      "ts": "2026-03-02T10:12:00Z"
+    },
+    {
+      "seq": 5,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "summarizer",
+      "type": "paper_summarized",
+      "message": "Summarized P2",
+      "payload": {
+        "paper_id": "P2",
+        "claims": 2
+      },
+      "ts": "2026-03-02T10:13:00Z"
+    },
+    {
+      "seq": 6,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "summarizer",
+      "type": "paper_summarized",
+      "message": "Summarized P3",
+      "payload": {
+        "paper_id": "P3",
+        "claims": 1
+      },
+      "ts": "2026-03-02T10:14:00Z"
+    },
+    {
+      "seq": 7,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "critic",
+      "type": "claim_verified",
+      "message": "C3 rejected at Stage 1: quote not found in source",
+      "payload": {
+        "claim_id": "C3",
+        "stage": "span",
+        "label": "quote_not_found"
+      },
+      "ts": "2026-03-02T10:15:00Z"
+    },
+    {
+      "seq": 8,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "critic",
+      "type": "claim_repaired",
+      "message": "C5 repaired after PARTIAL verdict",
+      "payload": {
+        "claim_id": "C5"
+      },
+      "ts": "2026-03-02T10:17:00Z"
+    },
+    {
+      "seq": 9,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "synthesizer",
+      "type": "report_ready",
+      "message": "Report generated from 5 accepted claims",
+      "payload": {
+        "accepted": 5,
+        "rejected": 1
+      },
+      "ts": "2026-03-02T10:18:00Z"
+    },
+    {
+      "seq": 10,
+      "run_id": "RUN-SAMPLE-001",
+      "agent": "orchestrator",
+      "type": "run_completed",
+      "message": "Run completed",
+      "payload": {},
+      "ts": "2026-03-02T10:18:00Z"
+    }
+  ],
+  "created_at": "2026-03-02T10:10:00Z",
+  "completed_at": "2026-03-02T10:18:00Z",
+  "error": null
+}

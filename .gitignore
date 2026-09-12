@@ -1,0 +1,28 @@
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# env & secrets
+.env
+.env.local
+
+# data & caches -- never commit these
+*.db
+*.sqlite3
+.cache/
+llm_cache/
+backend/eval/dataset/*.raw.json
+
+# node
+node_modules/
+dist/
+.vite/
+
+# os
+.DS_Store
+
+# keep the fixture and the labeled dataset -- they ARE the contract and the study data
+!fixtures/sample_run.json

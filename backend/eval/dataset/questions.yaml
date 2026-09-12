@@ -1,0 +1,21 @@
+# Research questions for the evaluation study. Target 15-20 for the final run.
+#
+# Choose questions where the literature genuinely disagrees -- a question with one
+# obvious answer cannot distinguish a careful system from a careless one.
+#
+# TODO(Track C): expand to 15-20 before week 7.
+
+- id: Q1
+  question: Do corticosteroids reduce mortality in patients hospitalized with COVID-19?
+  domain: medicine
+  contested: true
+
+- id: Q2
+  question: Does transformer model scale reliably improve downstream reasoning ability?
+  domain: machine learning
+  contested: true
+
+- id: Q3
+  question: What is the measured effect of remote work on software developer productivity?
+  domain: software engineering
+  contested: true
