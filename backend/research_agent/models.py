@@ -280,9 +280,14 @@ class VerifiedClaim(BaseModel):
         """Only SUPPORTED claims reach the final report."""
         return self.final_label is VerdictLabel.SUPPORTED
 
-    def verdict_for(self, stage: VerificationStage) -> Verdict | None:
-        for v in self.verdicts:
-            if v.stage is stage:
+    def verdict_for(self, stage: VerificationStage | str) -> Verdict | None:
+        """Most recent verdict for a stage, or None.
+
+        Compares by value, not identity: these enums are str-backed and callers
+        reasonably pass either the member or the plain string.
+        """
+        for v in reversed(self.verdicts):
+            if v.stage == stage:
                 return v
         return None
 
