@@ -28,11 +28,16 @@ class ModelRoles:
     #  * Avoid `-latest` aliases: they resolve to the NEWEST model, which carries the
     #    tightest free-tier cap, and a moving alias also makes evaluation results
     #    irreproducible. Pin exact ids and record them in the methodology.
+    #  * RE-MEASURED 2026-09-13: llama-3.3-70b-versatile has been fully removed from
+    #    Groq's catalog (404 model_not_found, not just deprecated) -- confirmed via
+    #    client.models.list(). No meta-llama chat model remains available at all.
+    #    Swapped the critic role to openai/gpt-oss-20b: small and fast enough for the
+    #    Critic's high call volume / tiny-input shape, still active on the free tier.
     #
     # Re-measure before each review; free tiers move.
     planner: str = "gemini-2.5-flash"         # 1 call/run
     summarizer: str = "gemini-2.5-flash"      # P calls/run, long inputs (whole papers)
-    critic: str = "llama-3.3-70b-versatile"   # ~60 calls/run -- routed to Groq entirely
+    critic: str = "openai/gpt-oss-20b"        # ~60 calls/run -- routed to Groq entirely
     synthesizer: str = "gemini-3.5-flash"     # 1 call/run, separate bucket from the above
 
     # Routing is by model-name prefix: gemini-* goes to Gemini, everything else to Groq

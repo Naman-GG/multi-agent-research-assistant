@@ -103,7 +103,7 @@ baseline, metrics, labeling tool, dataset and statistics are all Review 2.
 - [x] Remove the 10 `xfail` markers in `backend/tests/test_span_check.py` as they go green
 - [x] `verification/entailment.py` — `verify_claim()`, `repair_claim()`
 - [x] `agents/critic.py` — `verify_all()`, bounded concurrency, one-attempt repair loop
-- [ ] Tune `prompts/critic.md` and `prompts/repair.md`
+- [x] Tune `prompts/critic.md` and `prompts/repair.md`
 - [x] Fabrication-injection test — corrupt a real quote, prove the Critic catches it
 
 Start with `span_check.py`. It needs no API key, no database, no network — pure string
@@ -116,6 +116,17 @@ the report, not a config detail.
 
 *This is on the Review 1 critical path.* The demo ends on a rejected claim, and that
 rejection is this code. It is not a Review 2 workstream.
+
+**2026-09-13 — `ModelRoles.critic` was broken for everyone, not just Track C.**
+`llama-3.3-70b-versatile` (config.py) no longer exists on Groq at all — confirmed via
+`client.models.list()`, a 404 `model_not_found`, not a deprecation warning. Any run
+that reaches the Critic stage would fail regardless of who triggers it. Swapped to
+`openai/gpt-oss-20b` (still active, fast, cheap — a good shape match for ~60 short
+calls/run). Ran `prompts/critic.md` and `prompts/repair.md` against it live
+(`backend/scripts/tune_critic.py`) across all four labels — supported, partial,
+unsupported, contradicted — plus the repair step; all came back correct with
+sensible reasoning. **The prompts did not need wording changes** — the only real bug
+was the stale model id. Re-verify Groq's catalog before Review 2; free tiers move.
 
 ---
 
