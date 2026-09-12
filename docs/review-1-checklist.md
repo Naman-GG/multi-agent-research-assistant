@@ -99,8 +99,8 @@ Build all of it against `fixtures/sample_run.json` — don't wait for the API. S
 Her whole Review 1 scope is verification. **Nothing in `backend/eval/` before week 6** —
 baseline, metrics, labeling tool, dataset and statistics are all Review 2.
 
-- [ ] `verification/span_check.py` — `normalize()`, `find_span()`, `check_span()`
-- [ ] Remove the 10 `xfail` markers in `backend/tests/test_span_check.py` as they go green
+- [x] `verification/span_check.py` — `normalize()`, `find_span()`, `check_span()`
+- [x] Remove the 10 `xfail` markers in `backend/tests/test_span_check.py` as they go green
 - [ ] `verification/entailment.py` — `verify_claim()`, `repair_claim()`
 - [ ] `agents/critic.py` — `verify_all()`, bounded concurrency, one-attempt repair loop
 - [ ] Tune `prompts/critic.md` and `prompts/repair.md`
