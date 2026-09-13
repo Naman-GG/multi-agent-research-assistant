@@ -18,6 +18,13 @@ const EVENT_TYPES: EventType[] = [
   'error',
 ];
 
+/** True for the events after which the backend sends nothing more for this run.
+ *  A per-paper `error` from the summarizer is NOT terminal -- the run carries on --
+ *  only the orchestrator's `error` ends the run. */
+function isTerminal(event: RunEvent): boolean {
+  return event.type === 'run_completed' || (event.type === 'error' && event.agent === 'orchestrator');
+}
+
 interface UseRunEventsOptions {
   runId: string;
   initialEvents?: RunEvent[];
@@ -35,6 +42,7 @@ export function useRunEvents({
 }: UseRunEventsOptions) {
   const [events, setEvents] = useState<RunEvent[]>(initialEvents);
   const [isConnected, setIsConnected] = useState(false);
+  const [isFinished, setIsFinished] = useState(initialEvents.some(isTerminal));
   const [error, setError] = useState<string | null>(null);
   const lastSeqRef = useRef<number>(
     initialEvents.length ? Math.max(...initialEvents.map((e) => e.seq)) : 0
@@ -44,6 +52,7 @@ export function useRunEvents({
     if (initialEvents.length > 0) {
       setEvents(initialEvents);
       lastSeqRef.current = Math.max(...initialEvents.map((e) => e.seq));
+      if (initialEvents.some(isTerminal)) setIsFinished(true);
     }
   }, [initialEvents]);
 
@@ -78,6 +87,18 @@ export function useRunEvents({
       };
     }
 
+    // A run that has already ended has nothing left to stream. Opening an
+    // EventSource anyway makes the browser reconnect every few seconds forever,
+    // because the server closes each connection straight after the backlog.
+    if (initialEvents.some(isTerminal)) return;
+
+    const stop = () => {
+      if (!es) return;
+      EVENT_TYPES.forEach((eventType) => es?.removeEventListener(eventType, processMessageEvent));
+      es.close();
+      es = null;
+    };
+
     const processMessageEvent = (e: MessageEvent) => {
       if (isCancelled) return;
       try {
@@ -90,13 +111,20 @@ export function useRunEvents({
           });
           onEvent?.(event);
         }
+        if (isTerminal(event)) {
+          // Close explicitly: EventSource treats the server ending the stream as a
+          // dropped connection and would otherwise keep reconnecting.
+          stop();
+          setIsConnected(false);
+          setIsFinished(true);
+          setError(null);
+        }
       } catch (err) {
         console.error('Error parsing SSE event:', err);
       }
     };
 
-    const url = `/api/runs/${runId}/events?from_seq=${lastSeqRef.current}`;
-    es = new EventSource(url);
+    es = new EventSource(`/api/runs/${runId}/events?from_seq=${lastSeqRef.current}`);
 
     es.onopen = () => {
       if (isCancelled) return;
@@ -104,31 +132,25 @@ export function useRunEvents({
       setError(null);
     };
 
-    // Generic onmessage
+    // The backend sends named events only; onmessage is kept for unnamed ones.
     es.onmessage = processMessageEvent;
-
-    // Specific named event listeners for all backend event types
-    EVENT_TYPES.forEach((eventType) => {
-      es?.addEventListener(eventType, processMessageEvent);
-    });
+    EVENT_TYPES.forEach((eventType) => es?.addEventListener(eventType, processMessageEvent));
 
     es.onerror = () => {
-      if (isCancelled) return;
+      if (isCancelled || !es) return;
       setIsConnected(false);
       setError('Connection to event stream lost. Attempting to reconnect...');
     };
 
     return () => {
       isCancelled = true;
-      if (es) {
-        EVENT_TYPES.forEach((eventType) => {
-          es?.removeEventListener(eventType, processMessageEvent);
-        });
-        es.close();
-      }
+      stop();
       if (timerId) clearTimeout(timerId);
     };
+    // initialEvents is read only to decide whether to connect; re-running on every
+    // parent render (a new array each time) would tear down a live stream.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId, enabled, isDemo, onEvent]);
 
-  return { events, isConnected, error };
+  return { events, isConnected, isFinished, error };
 }

@@ -25,7 +25,7 @@ export const RunTrace: React.FC<RunTraceProps> = ({
   onNavigateToReport,
   onEvent,
 }) => {
-  const { events, isConnected, error } = useRunEvents({
+  const { events, isConnected, isFinished, error } = useRunEvents({
     runId: run.id,
     initialEvents: run.events,
     enabled: true,
@@ -33,7 +33,11 @@ export const RunTrace: React.FC<RunTraceProps> = ({
     onEvent,
   });
 
-  const isComplete = run.status === 'completed' || events.some((e) => e.type === 'run_completed');
+  const isFailed =
+    run.status === 'failed' ||
+    events.some((e) => e.type === 'error' && e.agent === 'orchestrator');
+  const isComplete =
+    !isFailed && (run.status === 'completed' || events.some((e) => e.type === 'run_completed'));
 
   return (
     <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 space-y-6">
@@ -47,7 +51,12 @@ export const RunTrace: React.FC<RunTraceProps> = ({
                 {run.id}
               </span>
               
-              {isComplete ? (
+              {isFailed ? (
+                <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+                  <Activity className="w-3.5 h-3.5 mr-1" />
+                  Pipeline Failed
+                </span>
+              ) : isComplete ? (
                 <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                   Pipeline Completed
@@ -70,7 +79,7 @@ export const RunTrace: React.FC<RunTraceProps> = ({
                 </span>
               )}
 
-              {error && !isDemo && (
+              {error && !isDemo && !isFinished && (
                 <span className="text-[11px] text-red-300 bg-red-950/40 border border-red-500/30 px-2.5 py-0.5 rounded-full">
                   {error}
                 </span>
