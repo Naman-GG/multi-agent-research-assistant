@@ -120,6 +120,28 @@ def test_merge_by_fuzzy_title_without_doi():
     assert "Attention Is All You Need" in titles
 
 
+def test_never_merge_different_dois():
+    p1 = PaperRef(
+        id="p1",
+        title="Dexamethasone in Hospitalized Patients with Covid-19",
+        source_api="openalex",
+        availability=TextAvailability.ABSTRACT_ONLY,
+        doi="10.1056/nejmoa2021436",
+        abstract="Trial A abstract.",
+    )
+    p2 = PaperRef(
+        id="p2",
+        title="Dexamethasone in Hospitalized Patients with Covid-19",
+        source_api="semantic_scholar",
+        availability=TextAvailability.ABSTRACT_ONLY,
+        doi="10.1001/jama.2020.17023",
+        abstract="Trial B abstract with same title but different DOI.",
+    )
+
+    merged = merge([p1, p2])
+    assert len(merged) == 2
+
+
 @pytest.mark.asyncio
 async def test_openalex_search_mocked():
     sample_response = {

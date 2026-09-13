@@ -9,30 +9,43 @@ import { ReportPage } from './pages/Report';
 export function App() {
   const [currentRun, setCurrentRun] = useState<Run>(apiClient.getSampleRun());
   const [activeRoute, setActiveRoute] = useState<'new' | 'trace' | 'report'>('new');
+  const [isDemoMode, setIsDemoMode] = useState(true);
 
   // Handle URL hash changes for deep-linking (/run/xxx, /report/xxx)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace(/^#\/?/, '');
+      const sample = apiClient.getSampleRun();
+
       if (hash.startsWith('run/')) {
         const id = hash.replace('run/', '');
-        if (id && currentRun.id !== id) {
+        if (id === sample.id) {
+          setCurrentRun(sample);
+          setIsDemoMode(true);
+          setActiveRoute('trace');
+        } else if (id) {
+          setIsDemoMode(false);
+          setActiveRoute('trace');
           apiClient.getRun(id).then((r) => {
             setCurrentRun(r);
-            setActiveRoute('trace');
+          }).catch((err) => {
+            console.error('Failed to fetch run:', err);
           });
-        } else {
-          setActiveRoute('trace');
         }
       } else if (hash.startsWith('report/')) {
         const id = hash.replace('report/', '');
-        if (id && currentRun.id !== id) {
+        if (id === sample.id) {
+          setCurrentRun(sample);
+          setIsDemoMode(true);
+          setActiveRoute('report');
+        } else if (id) {
+          setIsDemoMode(false);
+          setActiveRoute('report');
           apiClient.getRun(id).then((r) => {
             setCurrentRun(r);
-            setActiveRoute('report');
+          }).catch((err) => {
+            console.error('Failed to fetch run report:', err);
           });
-        } else {
-          setActiveRoute('report');
         }
       } else if (hash === '' || hash === 'new') {
         setActiveRoute('new');
@@ -43,7 +56,7 @@ export function App() {
     handleHashChange();
 
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentRun.id]);
+  }, []);
 
   const handleNavigate = (route: 'new' | 'trace' | 'report', runId?: string) => {
     const id = runId || currentRun.id;
@@ -59,13 +72,37 @@ export function App() {
     }
   };
 
-  const handleRunCreated = (newRun: Run) => {
-    setCurrentRun(newRun);
-    handleNavigate('trace', newRun.id);
+  const handleRunCreated = (runId: string, initialQuestion: string) => {
+    setIsDemoMode(false);
+    const initialRun: Run = {
+      id: runId,
+      question: initialQuestion,
+      status: 'pending',
+      config: {
+        max_papers: 12,
+        max_sub_queries: 5,
+        sources: ['openalex'],
+        year_from: null,
+        year_to: null,
+        allow_abstract_only: true,
+      },
+      plan: null,
+      papers: [],
+      summaries: [],
+      verdicts: [],
+      report: null,
+      events: [],
+      created_at: new Date().toISOString(),
+      completed_at: null,
+      error: null,
+    };
+    setCurrentRun(initialRun);
+    handleNavigate('trace', runId);
   };
 
   const handleLoadSample = () => {
     const sample = apiClient.getSampleRun();
+    setIsDemoMode(true);
     setCurrentRun(sample);
     handleNavigate('report', sample.id);
   };
@@ -90,6 +127,7 @@ export function App() {
         {activeRoute === 'trace' && (
           <RunTrace
             run={currentRun}
+            isDemo={isDemoMode}
             onNavigateToReport={(id) => handleNavigate('report', id)}
           />
         )}

@@ -114,11 +114,15 @@ def _merge_pair(primary: PaperRef, secondary: PaperRef) -> PaperRef:
 
 
 def merge(papers: list[PaperRef], *, title_threshold: float = 93.0) -> list[PaperRef]:
-    """Collapse duplicates across sources into one PaperRef each."""
+    """Collapse duplicates across sources into one PaperRef each.
+
+    Only merge by title when at least one of the papers has no DOI.
+    Papers with two different DOIs are distinct papers by definition.
+    """
     if not papers:
         return []
 
-    # Step 1: Group by normalized DOI
+    # Step 1: Group and merge papers by exact normalized DOI
     doi_groups: dict[str, list[PaperRef]] = {}
     no_doi_papers: list[PaperRef] = []
 
@@ -129,7 +133,6 @@ def merge(papers: list[PaperRef], *, title_threshold: float = 93.0) -> list[Pape
         else:
             no_doi_papers.append(paper)
 
-    # Merge DOI groups
     merged_doi_records: list[PaperRef] = []
     for group in doi_groups.values():
         res = group[0]
@@ -137,27 +140,43 @@ def merge(papers: list[PaperRef], *, title_threshold: float = 93.0) -> list[Pape
             res = _merge_pair(res, item)
         merged_doi_records.append(res)
 
-    # Step 2: Merge remaining no-DOI papers and check against existing records by title
-    candidates: list[PaperRef] = merged_doi_records + no_doi_papers
-    final_clusters: list[PaperRef] = []
+    # Step 2: For papers WITHOUT a DOI, merge into DOI records or other no-DOI papers by title
+    final_no_doi_records: list[PaperRef] = []
 
-    for paper in candidates:
+    for paper in no_doi_papers:
         norm_title = normalize_title(paper.title)
-        matched_idx = -1
+        if not norm_title:
+            final_no_doi_records.append(paper)
+            continue
 
-        for idx, existing in enumerate(final_clusters):
-            existing_norm_title = normalize_title(existing.title)
-            if not norm_title or not existing_norm_title:
+        # Check against DOI records first
+        matched_doi_idx = -1
+        for idx, doi_rec in enumerate(merged_doi_records):
+            doi_rec_norm_title = normalize_title(doi_rec.title)
+            if not doi_rec_norm_title:
                 continue
-            score = fuzz.token_sort_ratio(norm_title, existing_norm_title)
-            if score >= title_threshold:
-                matched_idx = idx
+            if fuzz.token_sort_ratio(norm_title, doi_rec_norm_title) >= title_threshold:
+                matched_doi_idx = idx
                 break
 
-        if matched_idx >= 0:
-            final_clusters[matched_idx] = _merge_pair(final_clusters[matched_idx], paper)
-        else:
-            final_clusters.append(paper)
+        if matched_doi_idx >= 0:
+            merged_doi_records[matched_doi_idx] = _merge_pair(merged_doi_records[matched_doi_idx], paper)
+            continue
 
-    return final_clusters
+        # Check against other no-DOI records
+        matched_no_doi_idx = -1
+        for idx, existing in enumerate(final_no_doi_records):
+            existing_norm_title = normalize_title(existing.title)
+            if not existing_norm_title:
+                continue
+            if fuzz.token_sort_ratio(norm_title, existing_norm_title) >= title_threshold:
+                matched_no_doi_idx = idx
+                break
+
+        if matched_no_doi_idx >= 0:
+            final_no_doi_records[matched_no_doi_idx] = _merge_pair(final_no_doi_records[matched_no_doi_idx], paper)
+        else:
+            final_no_doi_records.append(paper)
+
+    return merged_doi_records + final_no_doi_records
 

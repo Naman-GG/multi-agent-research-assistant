@@ -14,20 +14,22 @@ import {
 
 interface RunTraceProps {
   run: Run;
+  isDemo?: boolean;
   onNavigateToReport: (runId: string) => void;
   onEvent?: (event: RunEvent) => void;
 }
 
 export const RunTrace: React.FC<RunTraceProps> = ({
   run,
+  isDemo = false,
   onNavigateToReport,
   onEvent,
 }) => {
-  const { events, isConnected, isSimulating } = useRunEvents({
+  const { events, isConnected, error } = useRunEvents({
     runId: run.id,
     initialEvents: run.events,
     enabled: true,
-    simulateIfOffline: true,
+    isDemo,
     onEvent,
   });
 
@@ -50,16 +52,27 @@ export const RunTrace: React.FC<RunTraceProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                   Pipeline Completed
                 </span>
-              ) : (
+              ) : isConnected ? (
                 <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30 animate-pulse">
                   <Activity className="w-3.5 h-3.5 mr-1" />
-                  Agents Running
+                  Agents Running (Live SSE)
+                </span>
+              ) : (
+                <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <Activity className="w-3.5 h-3.5 mr-1" />
+                  {isDemo ? 'Demo Mode' : 'Connecting to Stream...'}
                 </span>
               )}
 
-              {isSimulating && (
-                <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded">
-                  Demo Simulation
+              {isDemo && (
+                <span className="text-[11px] font-mono font-bold text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                  ★ Review 1 Demo Mode (Fixture)
+                </span>
+              )}
+
+              {error && !isDemo && (
+                <span className="text-[11px] text-red-300 bg-red-950/40 border border-red-500/30 px-2.5 py-0.5 rounded-full">
+                  {error}
                 </span>
               )}
             </div>
@@ -124,7 +137,7 @@ export const RunTrace: React.FC<RunTraceProps> = ({
       <AgentTimeline
         run={run}
         events={events}
-        isStreaming={isConnected || isSimulating}
+        isStreaming={isConnected || isDemo}
       />
 
       {/* Retrieved Papers Section */}

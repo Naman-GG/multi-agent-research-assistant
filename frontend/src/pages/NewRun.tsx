@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Run, RunConfig } from '../api/types';
+import type { RunConfig } from '../api/types';
 import { apiClient } from '../api/client';
 import {
   Sparkles,
@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 interface NewRunProps {
-  onRunCreated: (run: Run) => void;
+  onRunCreated: (runId: string, initialQuestion: string) => void;
   onLoadSample: () => void;
 }
 
@@ -33,12 +33,14 @@ export const NewRun: React.FC<NewRunProps> = ({
   const [allowAbstractOnly, setAllowAbstractOnly] = useState(true);
   const [selectedSources, setSelectedSources] = useState<string[]>(['openalex']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
 
     setIsSubmitting(true);
+    setErrorMessage(null);
     try {
       const config: Partial<RunConfig> = {
         max_papers: maxPapers,
@@ -46,12 +48,11 @@ export const NewRun: React.FC<NewRunProps> = ({
         sources: selectedSources,
         allow_abstract_only: allowAbstractOnly,
       };
-      const run = await apiClient.startRun({ question, config });
-      onRunCreated(run);
+      const res = await apiClient.startRun({ question, config });
+      onRunCreated(res.run_id, question);
     } catch (err) {
       console.error('Failed to start run:', err);
-      // Fallback
-      onLoadSample();
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to connect to backend server. Make sure FastAPI is running on port 8000.');
     } finally {
       setIsSubmitting(false);
     }
@@ -86,6 +87,21 @@ export const NewRun: React.FC<NewRunProps> = ({
 
       {/* Main Form Card */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-sm">
+        {errorMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-red-950/40 border border-red-500/50 text-red-200 text-xs flex items-start justify-between gap-3">
+            <div>
+              <span className="font-bold">Backend Connection Error:</span> {errorMessage}
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="text-red-400 hover:text-red-200 font-bold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Question Input */}
