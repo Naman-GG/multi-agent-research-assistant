@@ -91,11 +91,15 @@ async def create_run(request: RunRequest) -> RunAccepted:
     bus = EventBus(run_id)
     _buses[run_id] = bus
 
+    # Persist a pending row before returning, so the browser's first GET /runs/{id}
+    # finds the run even if it lands before the pipeline's first checkpoint.
+    db.save_run(Run(id=run_id, question=request.question, config=request.config))
+
     async def execute():
         try:
             await run_pipeline(
                 request.question, _llm(run_id), _sources(),
-                config=request.config, bus=bus,
+                config=request.config, bus=bus, run_id=run_id,
             )
         except Exception:
             pass  # the failure is already recorded on the run and in the event trace
