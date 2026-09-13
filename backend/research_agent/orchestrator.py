@@ -58,13 +58,23 @@ async def run_pipeline(
     bus: EventBus | None = None,
     critic: CriticFn | None = None,
     persist: bool = True,
+    run_id: str | None = None,
 ) -> Run:
-    """Execute a complete research run and return it fully populated."""
+    """Execute a complete research run and return it fully populated.
+
+    The run's id comes from `run_id`, else from the supplied bus, and is only generated
+    here when the caller has neither. The API hands its id to the browser before the
+    run starts; generating a fresh one here would save the run under an id nobody
+    knows, and every later GET /runs/{id} would 404.
+    """
     cfg = config or RunConfig()
     st = settings or default_settings
     critic_fn = critic or _default_critic
 
-    run = Run(id=f"RUN-{uuid.uuid4().hex[:10].upper()}", question=question, config=cfg)
+    resolved_id = run_id or (bus.run_id if bus else f"RUN-{uuid.uuid4().hex[:10].upper()}")
+    if bus is not None and bus.run_id != resolved_id:
+        raise ValueError(f"bus is for {bus.run_id!r} but run_id is {resolved_id!r}")
+    run = Run(id=resolved_id, question=question, config=cfg)
     bus = bus or EventBus(run.id)
 
     def checkpoint(status: RunStatus) -> None:
